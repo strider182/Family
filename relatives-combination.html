@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatives Combination Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: 32px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 32px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+    }
+    .btn {
+      display: block;
+      margin: 24px auto;
+      padding: 12px 32px;
+      background: #38bdf8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(56,189,248,0.15);
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #0ea5e9;
+    }
+    .results-table {
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Relatives Combination Generator</h1>
+    <table id="setup-table">
+      <tr>
+        <th>Participants</th>
+        <th>Mom's Relatives</th>
+        <th>Baba's Relatives</th>
+      </tr>
+      <tr>
+        <td id="participants">
+          Tareq<br>
+          Abdallah
+        </td>
+        <td id="moms-relatives">
+          Raghda (AbdAlghani-Mohammad)<br>
+          Hassan<br>
+          Taghreed<br>
+          Maha<br>
+          Sahar<br>
+          Ghada<br>
+          Salah<br>
+          A'sem
+        </td>
+        <td id="babas-relatives">
+          Kozin<br>
+          Ala'<br>
+          Kareman (fadil-Fawaz)<br>
+          Amal<br>
+          Ra'eda<br>
+          Sana'
+        </td>
+      </tr>
+    </table>
+    <div style="margin-bottom:24px; text-align:center;">
+      <input type="text" id="new-participant" placeholder="Add participant" style="padding:8px; border-radius:4px; border:1px solid #ccc; width:200px;">
+      <button class="btn" id="add-participant" style="display:inline-block; margin-left:8px; padding:8px 16px; font-size:14px;">Add</button>
+    </div>
+    <div style="display:flex; justify-content:center; gap:16px;">
+      <button class="btn" id="generate-btn" style="margin:0;">Generate a Combination</button>
+      <button class="btn" id="clear-btn" style="margin:0; background:#ef4444;">Clear</button>
+    </div>
+    <table class="results-table" id="results-table">
+      <tr>
+        <th>Date</th>
+        <th>Participant</th>
+        <th>Mom's side</th>
+        <th>Baba's side</th>
+      </tr>
+    </table>
+  </div>
+  <script>
+    // Parse lists from table
+    function getList(id) {
+      // Get innerHTML and split by <br>
+      return document.getElementById(id).innerHTML.split('<br>').map(x => x.trim()).filter(Boolean);
+    }
+    // Load participants from localStorage or from HTML
+    let participants = JSON.parse(localStorage.getItem('participants') || 'null') || getList('participants');
+    const momsRelatives = getList('moms-relatives');
+    const babasRelatives = getList('babas-relatives');
+
+    // Load previous combinations from localStorage
+    let savedCombinations = JSON.parse(localStorage.getItem('combinations') || '[]');
+    let date;
+    if (savedCombinations.length > 0) {
+      // Set date to last used date + 1
+      let lastDate = savedCombinations[savedCombinations.length - 1][0];
+      let d = new Date(lastDate);
+      d.setDate(d.getDate() + 1);
+      date = d;
+      // Render previous combinations
+      const table = document.getElementById('results-table');
+      for (const combo of savedCombinations) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${combo[0]}</td><td>${combo[1]}</td><td>${combo[2]}</td><td>${combo[3]}</td>`;
+        table.appendChild(row);
+      }
+    } else {
+      date = new Date();
+    }
+
+    // Render participants list from array
+    function renderParticipants() {
+      const container = document.getElementById('participants');
+      container.innerHTML = '';
+      participants.forEach((name, idx) => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.marginBottom = '2px';
+        // Participant name
+        const span = document.createElement('span');
+        span.textContent = name;
+        span.style.flex = '1';
+        // Delete button
+        const btn = document.createElement('button');
+        btn.innerHTML = '&#128465;'; // Trash can icon
+        btn.title = 'Delete participant';
+        btn.style.background = 'none';
+        btn.style.border = 'none';
+        btn.style.color = '#ef4444';
+        btn.style.cursor = 'pointer';
+        btn.style.fontSize = '16px';
+        btn.style.marginLeft = '8px';
+        btn.onclick = function() {
+          participants.splice(idx, 1);
+          localStorage.setItem('participants', JSON.stringify(participants));
+          renderParticipants();
+        };
+        div.appendChild(span);
+        div.appendChild(btn);
+        container.appendChild(div);
+      });
+    }
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>'"]/g, function(tag) {
+        const chars = {
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        };
+        return chars[tag] || tag;
+      });
+    }
+    renderParticipants();
+
+    // State for cycles
+    let momCycle = [];
+    let babaCycle = [];
+    let momIndex = 0;
+    let babaIndex = 0;
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function getNextCycle(list, cycle, idx) {
+      if (cycle.length === 0 || idx >= cycle.length) {
+        cycle.length = 0;
+        cycle.push(...shuffle([...list]));
+        idx = 0;
+      }
+      return { cycle, idx };
+    }
+
+    document.getElementById('generate-btn').onclick = function() {
+      ({ cycle: momCycle, idx: momIndex } = getNextCycle(momsRelatives, momCycle, momIndex));
+      ({ cycle: babaCycle, idx: babaIndex } = getNextCycle(babasRelatives, babaCycle, babaIndex));
+
+      let assignedMoms = [];
+      let assignedBabas = [];
+      let today = date.toLocaleDateString();
+      const table = document.getElementById('results-table');
+      for (let i = 0; i < participants.length; i++) {
+        let mom;
+        let momTries = 0;
+        do {
+          mom = momCycle[momIndex % momCycle.length];
+          momIndex++;
+          momTries++;
+        } while (assignedMoms.includes(mom) && momTries < momCycle.length);
+        assignedMoms.push(mom);
+
+        let baba;
+        let babaTries = 0;
+        do {
+          baba = babaCycle[babaIndex % babaCycle.length];
+          babaIndex++;
+          babaTries++;
+        } while (assignedBabas.includes(baba) && babaTries < babaCycle.length);
+        assignedBabas.push(baba);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${escapeHTML(today)}</td><td>${escapeHTML(participants[i])}</td><td>${escapeHTML(mom)}</td><td>${escapeHTML(baba)}</td>`;
+        table.appendChild(row);
+        // Save to localStorage
+        savedCombinations.push([today, participants[i], mom, baba]);
+      }
+      localStorage.setItem('combinations', JSON.stringify(savedCombinations));
+      while (table.rows.length > 501) {
+        table.deleteRow(1);
+      }
+      date.setDate(date.getDate() + 1);
+    };
+
+    // Clear button functionality
+    document.getElementById('clear-btn').onclick = function() {
+      // Remove all saved combinations
+      localStorage.removeItem('combinations');
+      savedCombinations = [];
+      // Reset date to today
+      date = new Date();
+      // Remove all rows except header from results table
+      const table = document.getElementById('results-table');
+      while (table.rows.length > 1) {
+        table.deleteRow(1);
+      }
+    };
+
+    // Add participant functionality
+    document.getElementById('add-participant').onclick = function() {
+      const input = document.getElementById('new-participant');
+      const name = input.value.trim();
+      if (name) {
+        participants.push(name);
+        localStorage.setItem('participants', JSON.stringify(participants));
+        input.value = '';
+        location.reload();
+      }
+    };
+  </script>
+</body>
+</html>
