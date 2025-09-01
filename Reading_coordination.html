@@ -183,7 +183,11 @@
     // --- Data Model ---
     const PORTION_COUNT = 30;
     function getData() {
-      return JSON.parse(localStorage.getItem('readingProjectData') || '{}');
+      try {
+        const d = JSON.parse(localStorage.getItem('readingProjectData'));
+        if (d && d.portions && d.readers) return d;
+      } catch (e) {}
+      return getDefaultData();
     }
     function setData(data) {
       localStorage.setItem('readingProjectData', JSON.stringify(data));
@@ -235,8 +239,15 @@
         const portion = data.portions[i];
         const btn = document.createElement('div');
         btn.className = 'portion-btn' + (portion ? ' selected' : '');
-        btn.textContent = i + 1;
+        btn.innerHTML = `<div>${i + 1}</div>`;
         if (portion) {
+          // Show name and date
+          const info = document.createElement('div');
+          info.style.fontSize = '0.8em';
+          info.style.marginTop = '2px';
+          info.style.color = '#222';
+          info.textContent = `${portion.reader} (${portion.date})`;
+          btn.appendChild(info);
           // Confirm icon
           const confirmIcon = document.createElement('span');
           confirmIcon.className = 'icon confirm';
@@ -249,10 +260,10 @@
             renderAll();
           };
           btn.appendChild(confirmIcon);
-          // Remove icon
+          // Trash bin icon
           const removeIcon = document.createElement('span');
           removeIcon.className = 'icon remove';
-          removeIcon.innerHTML = '❌';
+          removeIcon.innerHTML = '🗑️';
           removeIcon.title = 'Remove from reader';
           removeIcon.onclick = (e) => {
             e.stopPropagation();
@@ -283,6 +294,23 @@
       if (assigned === PORTION_COUNT) {
         // Find latest date
         estDate = data.portions.reduce((max, p) => p && p.date && p.date > max ? p.date : max, '');
+        // Show at top of page
+        let topDate = document.getElementById('top-completion-date');
+        if (!topDate) {
+          topDate = document.createElement('div');
+          topDate.id = 'top-completion-date';
+          topDate.style.background = '#eaf0fa';
+          topDate.style.padding = '12px';
+          topDate.style.borderRadius = '8px';
+          topDate.style.fontWeight = 'bold';
+          topDate.style.fontSize = '1.2em';
+          topDate.style.marginBottom = '16px';
+          document.querySelector('.container').insertBefore(topDate, document.querySelector('.container').firstChild.nextSibling);
+        }
+        topDate.textContent = `Overall Completion Date: ${estDate}`;
+      } else {
+        const topDate = document.getElementById('top-completion-date');
+        if (topDate) topDate.remove();
       }
       document.getElementById('est-completion').textContent = estDate;
       // Progress bar
