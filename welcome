@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ترحيب</title>
+  <style>
+    body{margin:0;font-family:system-ui,Segoe UI,Tahoma,Arial;display:grid;place-items:center;height:100vh;background:#f7fafc;color:#111}
+    .box{background:#fff;padding:28px 24px;border-radius:18px;box-shadow:0 10px 25px rgba(0,0,0,.06);text-align:center;max-width:520px}
+    h1{margin:0 0 10px;font-size:28px}
+    p{margin:0 0 18px;color:#555;line-height:1.7}
+    a{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px}
+    a:hover{background:#1e40af}
+  </style>
+</head>
+<body>
+  <section class="box" role="region" aria-label="ترحيب">
+    <h1>أهلاً وسهلاً 👋</h1>
+    <p>سعداء بزيارتك. هنا ستجد كل ما تحتاجه للبدء بسرعة وببساطة.</p>
+    <a href="#start">ابدأ الآن</a>
+  </section>
+</body>
+</html>
