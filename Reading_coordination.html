@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reading Coordination Project</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 32px;
+      margin-bottom: 16px;
+      font-size: 1.4em;
+      font-weight: 700;
+    }
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 32px;
+      padding: 24px;
+    }
+    .portions-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .portion-btn {
+      background: #eaf0fa;
+      border: 2px solid #cfd8e3;
+      border-radius: 6px;
+      padding: 12px 0;
+      text-align: center;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s, border 0.2s;
+      position: relative;
+    }
+    .portion-btn.selected {
+      background: #7be3b5;
+      border-color: #4bbf73;
+      color: #fff;
+    }
+    .portion-btn.done {
+      background: #b3e5fc;
+      border-color: #039be5;
+      color: #222;
+    }
+    .portion-btn .icon {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 1.1em;
+      cursor: pointer;
+      color: #555;
+    }
+    .portion-btn .icon.confirm {
+      right: 24px;
+      color: #4bbf73;
+    }
+    .portion-btn .icon.remove {
+      color: #e57373;
+    }
+    .actions {
+      margin-bottom: 12px;
+    }
+    .actions button {
+      margin-right: 8px;
+      padding: 6px 16px;
+      border-radius: 4px;
+      border: none;
+      font-size: 1em;
+      cursor: pointer;
+      background: #eaf0fa;
+      color: #222;
+      transition: background 0.2s;
+    }
+    .actions button.selected {
+      background: #4bbf73;
+      color: #fff;
+    }
+    .actions button.clear {
+      background: #e57373;
+      color: #fff;
+    }
+    .summary-table, .timeline-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    .summary-table th, .summary-table td, .timeline-table th, .timeline-table td {
+      border: 1px solid #cfd8e3;
+      padding: 8px;
+      text-align: left;
+    }
+    .summary-table th, .timeline-table th {
+      background: #eaf0fa;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #eaf0fa;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      background: #4bbf73;
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 8px;
+      }
+      .section {
+        padding: 12px;
+      }
+      .portions-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Join the Reading Project</h1>
+    <div class="section" id="claim-section">
+      <h2>Claim Your Reading Portions</h2>
+      <label for="participant-name">Your Name</label><br>
+      <input type="text" id="participant-name" placeholder="Enter your full name" style="width:100%;margin-bottom:12px;padding:8px;">
+      <div class="actions">
+        <button id="select-all">Select All Available</button>
+        <button id="clear-all" class="clear">Clear All</button>
+      </div>
+      <div class="portions-grid" id="portion-select-grid"></div>
+      <label for="completion-date">Completion Date</label><br>
+      <input type="date" id="completion-date" style="width:100%;margin-bottom:12px;padding:8px;">
+      <button id="claim-btn" style="background:#ffc66c;color:#222;padding:10px 24px;border-radius:6px;border:none;font-size:1.1em;">Claim Portion(s)</button>
+      <div id="claim-message" style="margin-top:10px;color:#4bbf73;font-weight:500;"></div>
+    </div>
+    <div class="section" id="overview-section">
+      <h2>Project Progress</h2>
+      <div class="progress-bar"><div class="progress" id="progress-bar"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:24px;">
+        <div>
+          <div><b id="assigned-count">0</b> Portions Assigned</div>
+          <div><b id="available-count">30</b> Available Portions</div>
+          <div><b id="active-readers">0</b> Active Readers</div>
+          <div>Est. Completion: <b id="est-completion">-</b></div>
+        </div>
+      </div>
+      <h3 style="margin-top:24px;">Reading Portions Overview</h3>
+      <div class="portions-grid" id="portion-overview-grid"></div>
+    </div>
+    <div class="section" id="summary-section">
+      <h2>Reader Assignments</h2>
+      <table class="summary-table" id="reader-summary-table">
+        <thead><tr><th>Reader</th><th>Portions</th><th>Latest Completion</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h2>Completion Timeline</h2>
+      <table class="timeline-table" id="timeline-table">
+        <thead><tr><th>Date</th><th>Portions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // --- Data Model ---
+    const PORTION_COUNT = 30;
+    function getData() {
+      try {
+        const d = JSON.parse(localStorage.getItem('readingProjectData'));
+        if (d && d.portions && d.readers) return d;
+      } catch (e) {}
+      return getDefaultData();
+    }
+    function setData(data) {
+      localStorage.setItem('readingProjectData', JSON.stringify(data));
+    }
+    function getDefaultData() {
+      return {
+        portions: Array(PORTION_COUNT).fill(null), // [{reader, date, done}]
+        readers: {}, // {name: {portions: [], dates: []}}
+      };
+    }
+    function loadData() {
+      let data = getData();
+      if (!data.portions || !data.readers) {
+        data = getDefaultData();
+        setData(data);
+      }
+      return data;
+    }
+    // --- UI State ---
+    let selectedPortions = [];
+    function renderPortionSelectGrid(data) {
+      const grid = document.getElementById('portion-select-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < PORTION_COUNT; i++) {
+        const portion = data.portions[i];
+        const btn = document.createElement('div');
+        btn.className = 'portion-btn' + (selectedPortions.includes(i) ? ' selected' : '') + (portion ? ' disabled' : '');
+        btn.textContent = i + 1;
+        btn.onclick = () => {
+          if (portion) return;
+          if (selectedPortions.includes(i)) {
+            selectedPortions = selectedPortions.filter(p => p !== i);
+          } else {
+            selectedPortions.push(i);
+          }
+          renderPortionSelectGrid(data);
+        };
+        if (portion) {
+          btn.style.opacity = 0.5;
+          btn.title = `Claimed by ${portion.reader}`;
+        }
+        grid.appendChild(btn);
+      }
+    }
+    function renderPortionOverviewGrid(data) {
+      const grid = document.getElementById('portion-overview-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < PORTION_COUNT; i++) {
+        const portion = data.portions[i];
+        const btn = document.createElement('div');
+        btn.className = 'portion-btn' + (portion ? ' selected' : '');
+        btn.innerHTML = `<div>${i + 1}</div>`;
+        if (portion) {
+          // Show name and date
+          const info = document.createElement('div');
+          info.style.fontSize = '0.8em';
+          info.style.marginTop = '2px';
+          info.style.color = '#222';
+          info.textContent = `${portion.reader} (${portion.date})`;
+          btn.appendChild(info);
+          // Confirm icon
+          const confirmIcon = document.createElement('span');
+          confirmIcon.className = 'icon confirm';
+          confirmIcon.innerHTML = '✔️';
+          confirmIcon.title = 'Mark as done';
+          confirmIcon.onclick = (e) => {
+            e.stopPropagation();
+            portion.done = !portion.done;
+            setData(data);
+            renderAll();
+          };
+          btn.appendChild(confirmIcon);
+          // Trash bin icon
+          const removeIcon = document.createElement('span');
+          removeIcon.className = 'icon remove';
+          removeIcon.innerHTML = '🗑️';
+          removeIcon.title = 'Remove from reader';
+          removeIcon.onclick = (e) => {
+            e.stopPropagation();
+            data.portions[i] = null;
+            setData(data);
+            renderAll();
+          };
+          btn.appendChild(removeIcon);
+          if (portion.done) {
+            btn.classList.add('done');
+          }
+          btn.title = `${portion.reader} (Due: ${portion.date || '-'})`;
+        } else {
+          btn.title = 'Available';
+        }
+        grid.appendChild(btn);
+      }
+    }
+    function renderProgress(data) {
+      const assigned = data.portions.filter(p => p).length;
+      const available = PORTION_COUNT - assigned;
+      const readers = Object.keys(data.readers).length;
+      document.getElementById('assigned-count').textContent = assigned;
+      document.getElementById('available-count').textContent = available;
+      document.getElementById('active-readers').textContent = readers;
+      // Completion date
+      let estDate = '-';
+      if (assigned === PORTION_COUNT) {
+        // Find latest date
+        estDate = data.portions.reduce((max, p) => p && p.date && p.date > max ? p.date : max, '');
+        // Show at top of page
+        let topDate = document.getElementById('top-completion-date');
+        if (!topDate) {
+          topDate = document.createElement('div');
+          topDate.id = 'top-completion-date';
+          topDate.style.background = '#eaf0fa';
+          topDate.style.padding = '12px';
+          topDate.style.borderRadius = '8px';
+          topDate.style.fontWeight = 'bold';
+          topDate.style.fontSize = '1.2em';
+          topDate.style.marginBottom = '16px';
+          document.querySelector('.container').insertBefore(topDate, document.querySelector('.container').firstChild.nextSibling);
+        }
+        topDate.textContent = `Overall Completion Date: ${estDate}`;
+      } else {
+        const topDate = document.getElementById('top-completion-date');
+        if (topDate) topDate.remove();
+      }
+      document.getElementById('est-completion').textContent = estDate;
+      // Progress bar
+      document.getElementById('progress-bar').style.width = (assigned / PORTION_COUNT * 100) + '%';
+    }
+    function renderReaderSummary(data) {
+      const tbody = document.getElementById('reader-summary-table').querySelector('tbody');
+      tbody.innerHTML = '';
+      const readers = {};
+      data.portions.forEach((p, idx) => {
+        if (p) {
+          if (!readers[p.reader]) readers[p.reader] = [];
+          readers[p.reader].push({portion: idx+1, date: p.date, done: p.done});
+        }
+      });
+      Object.entries(readers).forEach(([reader, portions]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${reader}</td><td>${portions.map(p=>p.portion).join(', ')}</td><td>${portions.reduce((max, p) => p.date && p.date > max ? p.date : max, '')}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    function renderTimeline(data) {
+      const tbody = document.getElementById('timeline-table').querySelector('tbody');
+      tbody.innerHTML = '';
+      // Group by date
+      const byDate = {};
+      data.portions.forEach((p, idx) => {
+        if (p && p.date) {
+          if (!byDate[p.date]) byDate[p.date] = [];
+          byDate[p.date].push(`${idx+1}(${p.reader})`);
+        }
+      });
+      Object.entries(byDate).sort().forEach(([date, portions]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${date}</td><td>${portions.join(', ')}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    function renderAll() {
+      const data = loadData();
+      renderPortionSelectGrid(data);
+      renderPortionOverviewGrid(data);
+      renderProgress(data);
+      renderReaderSummary(data);
+      renderTimeline(data);
+    }
+    // --- Event Handlers ---
+    document.getElementById('select-all').onclick = () => {
+      const data = loadData();
+      selectedPortions = [];
+      for (let i = 0; i < PORTION_COUNT; i++) {
+        if (!data.portions[i]) selectedPortions.push(i);
+      }
+      renderPortionSelectGrid(data);
+    };
+    document.getElementById('clear-all').onclick = () => {
+      selectedPortions = [];
+      renderPortionSelectGrid(loadData());
+    };
+    document.getElementById('claim-btn').onclick = () => {
+      const name = document.getElementById('participant-name').value.trim();
+      const date = document.getElementById('completion-date').value;
+      if (!name) {
+        document.getElementById('claim-message').textContent = 'Please enter your name.';
+        return;
+      }
+      if (!date) {
+        document.getElementById('claim-message').textContent = 'Please enter a completion date.';
+        return;
+      }
+      if (selectedPortions.length === 0) {
+        document.getElementById('claim-message').textContent = 'Please select at least one portion.';
+        return;
+      }
+      const data = loadData();
+      selectedPortions.forEach(idx => {
+        data.portions[idx] = {reader: name, date: date, done: false};
+      });
+      if (!data.readers[name]) data.readers[name] = {portions: [], dates: []};
+      data.readers[name].portions = data.portions
+        .map((p, i) => p && p.reader === name ? i+1 : null)
+        .filter(x => x);
+      data.readers[name].dates = data.portions
+        .map((p, i) => p && p.reader === name ? p.date : null)
+        .filter(x => x);
+      setData(data);
+      selectedPortions = [];
+      document.getElementById('claim-message').textContent = 'Portion(s) claimed!';
+      renderAll();
+    };
+    // --- Initial Render ---
+    renderAll();
+  </script>
+</body>
+</html>
